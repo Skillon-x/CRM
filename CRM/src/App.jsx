@@ -1,30 +1,40 @@
-import React from 'react';
-import Login from "./Pages/Login.jsx";
-import Signup from "./Pages/SignUp.jsx";
-import TechDashboard from './Pages/Dashboard/TechDashboard.jsx';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Tech from './components/dashboard/techdashboard/Tech.jsx';
-import Hero from './Pages/Hero.jsx';
-import Overview from './Pages/Overview.jsx';
+// import React from 'react';
+// import Login from "./Pages/Login.jsx";
+// import Signup from "./Pages/SignUp.jsx";
+// import TechDashboard from './Pages/Dashboard/TechDashboard.jsx';
+// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+// import Tech from './components/dashboard/techdashboard/Tech.jsx';
+// import Hero from './Pages/Hero.jsx';
+// import Overview from './Pages/Overview.jsx';
+// import Home from './Pages/home.jsx';
+
+
 import Home from './Pages/home.jsx';
-// import three from "../src/Pages/Dashboard/three.jsx"
+import { Navbar } from './components/Layout/Navbar.jsx';
+import { HeroSection } from './Pages/HeroSection.jsx';
+import { FeaturesSection } from './Pages/FeaturesSection.jsx';
+// import { TrustedSection } from './Pages/TrustedSection.jsx';
+import { Landing } from "./Pages/Landing.jsx"
+import { HowItWorks } from './Pages/HowItWorks.jsx';
+import { Testimonials} from "./Pages/Testimonials.jsx"
+import  GetStarted from "./Pages/GetStarted.jsx"
+import Footer from './components/Layout/Footer.jsx';
+
+
 
 const App = () => {
   return (
-    <Router>
-      <div className="min-h-screen bg-black">
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/techdashboard" element={<TechDashboard />} />
-          <Route path="/tech" element={<Tech />} />
-          <Route path="/hero" element={<Hero />} />
-          <Route path="/overview" element={<Overview />} />
-          <Route path="/home" element={<Home/>} />
-          
-        </Routes>
-      </div>
-    </Router>
+    <Home>
+      <Navbar />
+      <Landing />
+      <HeroSection />
+      <FeaturesSection />
+      <HowItWorks />
+      <Testimonials />
+      <GetStarted/>
+      {/* <TrustedSection /> */}
+      <Footer />
+    </Home>
   );
 };
 

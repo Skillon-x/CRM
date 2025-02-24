@@ -1,66 +1,86 @@
-// Home.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 
-const Home = ({ children }) => {  // Add children prop
+const Home = ({ children }) => {
   const [stars, setStars] = useState([]);
+  const [shootingStars, setShootingStars] = useState([]);
+
+  const generateStars = useCallback(() => {
+    return Array.from({ length: 300 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      z: Math.random() * 2,
+      size: Math.random() * 1.5 + 0.5,
+      speed: Math.random() * 0.03 + 0.02,
+      twinkle: Math.random()
+    }));
+  }, []);
+
+  const generateShootingStar = useCallback(() => ({
+    id: Math.random(),
+    startX: Math.random() * 100,
+    startY: Math.random() * 100,
+    length: Math.random() * 150 + 100,
+    angle: Math.random() * 45 + 20,
+    duration: Math.random() * 1000 + 1000,
+    startTime: Date.now()
+  }), []);
 
   useEffect(() => {
-    // Your existing stars generation and animation code remains the same
-    const generateStars = () => {
-      const newStars = [];
-      for (let i = 0; i < 300; i++) {
-        newStars.push({
-          id: i,
-          x: Math.random() * 100 - 50,
-          y: Math.random() * 100 - 50,
-          z: Math.random() * 10,
-          size: Math.random() * 2 + 1,
-          speed: Math.random() * 0.05 + 0.02
-        });
-      }
-      return newStars;
-    };
-
     setStars(generateStars());
 
     const animateStars = () => {
-      setStars(prevStars => 
+      setStars(prevStars =>
         prevStars.map(star => {
           let newZ = star.z + star.speed;
-          
-          if (newZ > 10) {
+          if (newZ >= 2) {
             return {
               ...star,
-              x: Math.random() * 100 - 50,
-              y: Math.random() * 100 - 50,
-              z: 0
+              x: Math.random() * 100,
+              y: Math.random() * 100,
+              z: 0,
+              twinkle: Math.random()
             };
           }
-          
-          const perspective = 1 + newZ * 0.3;
-          
+
           return {
             ...star,
             z: newZ,
-            screenX: 50 + (star.x * perspective),
-            screenY: 50 + (star.y * perspective),
-            screenSize: star.size * perspective
+            opacity: 0.6 + star.twinkle * Math.sin(Date.now() * 0.01)
           };
         })
       );
     };
 
-    const animationInterval = setInterval(animateStars, 16);
-    return () => clearInterval(animationInterval);
-  }, []);
+    const animateShootingStars = () => {
+      const currentTime = Date.now();
+      setShootingStars(prevShootingStars => {
+        const activeShootingStars = prevShootingStars.filter(
+          star => currentTime - star.startTime < star.duration
+        );
+
+        if (Math.random() < 0.02 && activeShootingStars.length < 3) {
+          activeShootingStars.push(generateShootingStar());
+        }
+
+        return activeShootingStars;
+      });
+    };
+
+    let animationFrame;
+    const animate = () => {
+      animateStars();
+      animateShootingStars();
+      animationFrame = requestAnimationFrame(animate);
+    };
+
+    animate();
+    return () => cancelAnimationFrame(animationFrame);
+  }, [generateStars, generateShootingStar]);
 
   return (
-    <div className="relative w-full min-h-screen overflow-hidden bg-[#020924]">
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-radial from-[#041048] via-[#020924] to-[#020924] opacity-80"></div>
-      
-      {/* Subtle blue glow effect */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#0046ff] via-transparent to-transparent opacity-5"></div>
+    <div className="relative w-full min-h-screen overflow-hidden bg-black">
+      <div className="absolute inset-0 bg-gradient-to-b from-[#020024] to-black" />
 
       {/* Stars */}
       {stars.map(star => (
@@ -68,21 +88,43 @@ const Home = ({ children }) => {  // Add children prop
           key={star.id}
           className="absolute rounded-full bg-white"
           style={{
-            left: `${star.screenX}%`,
-            top: `${star.screenY}%`,
-            width: `${star.screenSize}px`,
-            height: `${star.screenSize}px`,
-            opacity: Math.min(1, star.z * 0.5),
-            transform: `translate(-50%, -50%)`,
-            transition: 'all 0.016s linear',
-            boxShadow: `0 0 ${star.screenSize * 2}px rgba(255, 255, 255, 0.8)`
+            left: `${star.x}%`,
+            top: `${star.y}%`,
+            width: `${star.size}px`,
+            height: `${star.size}px`,
+            opacity: star.opacity,
+            transform: `scale(${1 + star.z}) translateZ(${star.z}px)`,
+            transition: 'opacity 0.2s ease-in-out'
           }}
         />
       ))}
 
-      {/* Content container */}
-      <div className="relative z-10 w-full">
-        {children}  {/* This is where other components will be rendered */}
+      {/* Shooting Stars */}
+      {shootingStars.map(shootingStar => {
+        const progress = (Date.now() - shootingStar.startTime) / shootingStar.duration;
+        const opacity = progress < 0.5 ? progress * 2 : (1 - progress) * 2;
+
+        return (
+          <div
+            key={shootingStar.id}
+            className="absolute"
+            style={{
+              left: `${shootingStar.startX}%`,
+              top: `${shootingStar.startY}%`,
+              width: `${shootingStar.length}px`,
+              height: '2px',
+              opacity,
+              background: `linear-gradient(${shootingStar.angle}deg, white, transparent)`,
+              transform: `rotate(${shootingStar.angle}deg)`,
+              boxShadow: `0 0 4px white, 0 0 8px rgba(255, 255, 255, 0.7)`,
+              transformOrigin: '0 0'
+            }}
+          />
+        );
+      })}
+
+      <div className="relative z-10 w-full bg-gradient-to-b from-transparent via-black/50 to-black/90">
+        {children}
       </div>
     </div>
   );
