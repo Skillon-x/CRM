@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@layer utilities {
+    .text-shadow {
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      .glow-effect {
+        box-shadow: 0 0 40px rgba(66, 153, 225, 0.5);
+        
+      }
+    }
+  }
+
