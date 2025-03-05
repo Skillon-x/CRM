@@ -1,4 +1,30 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, Suspense, useRef } from 'react';
+import { Canvas, useLoader, useFrame } from '@react-three/fiber';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { OrbitControls, Environment } from '@react-three/drei';
+import galaxyModel from '../assets/3dmodel/galaxy.glb';
+
+// Galaxy Model Component
+const GalaxyModel = () => {
+  const modelRef = useRef();
+  const gltf = useLoader(GLTFLoader, galaxyModel);
+  
+  // Add a subtle rotation animation
+  useFrame(() => {
+    if (modelRef.current) {
+      modelRef.current.rotation.y += 0.001;
+    }
+  });
+  
+  return (
+    <primitive 
+      ref={modelRef}
+      object={gltf.scene} 
+      scale={[2, 2, 2]} 
+      position={[0, 0, 0]} 
+    />
+  );
+};
 
 const Home = ({ children }) => {
   const [stars, setStars] = useState([]);
@@ -82,6 +108,28 @@ const Home = ({ children }) => {
     <div className="relative w-full min-h-screen overflow-hidden bg-black">
       <div className="absolute inset-0 bg-gradient-to-b from-[#020024] to-black" />
 
+      {/* 3D Galaxy Model */}
+      <div className="absolute inset-0 z-10">
+        <Canvas camera={{ position: [0, 0, 10], fov: 45 }}>
+          <ambientLight intensity={0.5} />
+          <pointLight position={[10, 10, 10]} intensity={1} />
+          <Suspense fallback={null}>
+            <GalaxyModel />
+            <Environment preset="night" />
+          </Suspense>
+          <OrbitControls 
+            enableZoom={false} 
+            enablePan={false}
+            autoRotate 
+            autoRotateSpeed={0.5} 
+          />
+        </Canvas>
+        {/* Credit for the 3D model */}
+        <div className="absolute bottom-4 right-4 text-xs text-white/70 bg-black/30 p-2 rounded backdrop-blur-sm">
+          Galaxy by 991519166, CC Attribution
+        </div>
+      </div>
+
       {/* Stars */}
       {stars.map(star => (
         <div
@@ -94,7 +142,8 @@ const Home = ({ children }) => {
             height: `${star.size}px`,
             opacity: star.opacity,
             transform: `scale(${1 + star.z}) translateZ(${star.z}px)`,
-            transition: 'opacity 0.2s ease-in-out'
+            transition: 'opacity 0.2s ease-in-out',
+            zIndex: 5
           }}
         />
       ))}
@@ -107,7 +156,7 @@ const Home = ({ children }) => {
         return (
           <div
             key={shootingStar.id}
-            className="absolute"
+            className="absolute z-5"
             style={{
               left: `${shootingStar.startX}%`,
               top: `${shootingStar.startY}%`,
@@ -117,13 +166,14 @@ const Home = ({ children }) => {
               background: `linear-gradient(${shootingStar.angle}deg, white, transparent)`,
               transform: `rotate(${shootingStar.angle}deg)`,
               boxShadow: `0 0 4px white, 0 0 8px rgba(255, 255, 255, 0.7)`,
-              transformOrigin: '0 0'
+              transformOrigin: '0 0',
+              zIndex: 5
             }}
           />
         );
       })}
 
-      <div className="relative z-10 w-full bg-gradient-to-b from-transparent via-black/50 to-black/90">
+      <div className="relative z-20 w-full bg-gradient-to-b from-transparent via-black/30 to-black/80">
         {children}
       </div>
     </div>
